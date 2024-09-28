@@ -8,14 +8,14 @@ public class LamportClock {
     }
 
     public void increment() {
-        this.timestamp++;
+        timestamp++;
     }
 
-    public void synchronize(int externalTimestamp) {
-        this.timestamp = Math.max(this.timestamp, externalTimestamp) + 1;
+    public void synchronize(int otherTimestamp) {
+        timestamp = Math.max(timestamp, otherTimestamp) + 1;
     }
 
     public int getCurrentTime() {
-        return this.timestamp;
+        return timestamp;
     }
 }

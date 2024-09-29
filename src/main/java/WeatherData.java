@@ -4,11 +4,13 @@ public class WeatherData {
     private String id;
     private String name;
     private double airTemp;
+    private long lastUpdated; // Timestamp of last update
 
     public WeatherData(String id, String name, double airTemp) {
         this.id = id;
         this.name = name;
         this.airTemp = airTemp;
+        this.lastUpdated = System.currentTimeMillis(); // Set current timestamp
     }
 
     // Getters and Setters
@@ -34,6 +36,10 @@ public class WeatherData {
 
     public void setAirTemp(double airTemp) {
         this.airTemp = airTemp;
+    }
+
+    public long getLastUpdated() {
+        return lastUpdated;
     }
 
     @Override

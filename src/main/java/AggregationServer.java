@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.concurrent.Executors;
 import java.nio.charset.StandardCharsets;
 
 public class AggregationServer {
@@ -19,6 +21,7 @@ public class AggregationServer {
     public AggregationServer() {
         dataStore = new HashMap<>();
         lamportClock = new LamportClock();
+        startDataExpiryChecker(); // Starts background thread for expiry
     }
 
     // Method to handle PUT requests
@@ -45,6 +48,31 @@ public class AggregationServer {
         return new WeatherData(id, name, airTemp);
     }
 
+    // Starts a background thread to check for expired data every 10 seconds
+    private void startDataExpiryChecker() {
+        Runnable task = () -> {
+            while (true) {
+                try {
+                    Thread.sleep(10000); // Check every 10 seconds
+                    long currentTime = System.currentTimeMillis();
+                    Iterator<Map.Entry<String, WeatherData>> iterator = dataStore.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<String, WeatherData> entry = iterator.next();
+                        if (currentTime - entry.getValue().getLastUpdated() > 30000) { // If older than 30 seconds
+                            iterator.remove(); // Remove expired data
+                            System.out.println("Data expired and removed for ID: " + entry.getKey());
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Thread thread = new Thread(task);
+        thread.setDaemon(true); // Daemon thread, so it ends with the program
+        thread.start();
+    }
+
     public static void main(String[] args) throws IOException {
         AggregationServer server = new AggregationServer();
         System.out.println("Weather Aggregation Server is running");
@@ -52,7 +80,7 @@ public class AggregationServer {
         // Create an HTTP server on port 4567
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(4567), 0);
         httpServer.createContext("/weather", new WeatherHandler(server));
-        httpServer.setExecutor(null); // creates a default executor
+        httpServer.setExecutor(Executors.newFixedThreadPool(10)); // Creates a thread pool to handle multiple requests
         httpServer.start();
     }
 

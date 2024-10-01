@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executors; // Import for Executors for threading
 import java.nio.charset.StandardCharsets;
 
 public class AggregationServer {
@@ -80,7 +80,9 @@ public class AggregationServer {
         // Create an HTTP server on port 4567
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(4567), 0);
         httpServer.createContext("/weather", new WeatherHandler(server));
-        httpServer.setExecutor(Executors.newFixedThreadPool(10)); // Creates a thread pool to handle multiple requests
+
+        // Creates a thread pool to handle multiple requests
+        httpServer.setExecutor(Executors.newFixedThreadPool(10)); 
         httpServer.start();
     }
 
